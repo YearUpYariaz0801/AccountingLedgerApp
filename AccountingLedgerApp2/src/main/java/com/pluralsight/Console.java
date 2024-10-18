@@ -1,6 +1,7 @@
 package com.pluralsight;
 
 import java.util.Scanner;
+
 public class Console {
 
     static Scanner scanner = new Scanner(System.in);
@@ -74,6 +75,4 @@ public class Console {
         float userinput =Float.parseFloat(value);
         return  userinput;
     }
-
-
 }
