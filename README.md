@@ -27,6 +27,6 @@ Reports Screen
   Custom Search
 
 
-***My project was restarted late so i don't have as many commits and one was deleted.
+***My project was restarted late so I don't have as many commits and one was deleted.
   
 
