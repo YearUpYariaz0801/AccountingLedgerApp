@@ -10,6 +10,7 @@ Home Screen
   Being able to add a deposit.
   Make a payment
   Review the ledger
+  Exit
 
 Ledger Screen
   Review all transactions
