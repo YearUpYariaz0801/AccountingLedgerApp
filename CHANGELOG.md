@@ -3,6 +3,7 @@
 ### Changed
 - Removed local Console class implementation in favor of external dependency
 - Added yearup-utils dependency to pom.xml for console input handling
+- 
 
 ### Removed
 - Deleted Console.java class containing input handling methods:

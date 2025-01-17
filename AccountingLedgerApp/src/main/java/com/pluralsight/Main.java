@@ -2,6 +2,7 @@ package com.pluralsight;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Collections;
@@ -9,10 +10,13 @@ import com.abdurraheem.utils.Console;
 
 public class Main {
     private static final String FILE_NAME = "AccountingLedgerApp/Transactions.csv";
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final LocalDateTime current = LocalDateTime.now();
+    private static final DateTimeFormatter fmtDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter fmtTime = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private static Transactions transactionsHandler = new Transactions();
 
-    //Connecting my homescreen to the main
+    //Connecting my home screen to the main
     public static void main(String[] args) {
         while (true) {
             displayHomeScreen();
@@ -21,16 +25,23 @@ public class Main {
 
     //Displaying the Home Screen options
     private static void displayHomeScreen() {
+
+        //Enhancement
+        String homeOptions = """
+                Please select from the following choices:
+                D - Add Deposit 
+                P - Make a Payment
+                L - View Ledger
+                V - View last transaction
+                R - View Reports
+                X - Exit
+                """;
         System.out.println("\nWelcome to Your Accounting Ledger!");
         System.out.println("-----------------------------------");
-        System.out.println("\nHome Screen:");
-        System.out.println("D) Add Deposit");
-        System.out.println("P) Make Payment");
-        System.out.println("L) Ledger");
-        System.out.println("V) View Last Transaction");
-        System.out.println("R) Reports");
-        System.out.println("X) Exit");
+
+        System.out.println(homeOptions);
         String choice = Console.PromptForString("Choose an option: ").toUpperCase();
+
 
         //Making the user options for the Home Screen
         switch (choice) {
@@ -56,35 +67,85 @@ public class Main {
         }
     }
 
-    //Functional deposit prompt
-    private static void addDeposit() {
-        System.out.println("\nAdd Deposit:");
-        String date = Console.PromptForString("Enter date (yyyy-MM-dd): ");
-        String description = Console.PromptForString("Enter description: ");
-        String vendor = Console.PromptForString("Enter vendor: ");
-        double amount = Console.PromptForDouble("Enter amount: ");
+    //Functional debit prompt
+    private static void addPayment() {
+        //declare variables
+        String date, time, description, vendor;
+        double amount;
+        boolean choice = Console.PromptForYesNo("Is this payment recent?");
 
-        addEntryToLedger(date, description, vendor, amount);
-        System.out.println("\nDeposit successfully added.");
+
+        try {
+            //if the user is adding a recent debit set date and time to current
+            if (choice) {
+                date = current.format(fmtDate);
+                time = current.format(fmtTime);
+                description = Console.PromptForString(" Description: ");
+                vendor = Console.PromptForString(" Vendor: ");
+                amount = Console.PromptForDouble(" Amount: ");
+                System.out.println("                      $" + amount + " Debit pending...");
+                addEntryToLedger(date, time, description, vendor, amount);
+            }
+
+            //if deposit is adding a previous debit prompt for date and time
+            if (!choice) {
+                date = Console.PromptForString(" Date (MM-dd-YYYY): ");
+                time = Console.PromptForString(" Time (HH:mm:ss): ");
+                description = Console.PromptForString(" Description: ");
+                vendor = Console.PromptForString(" Vendor: ");
+                amount = Console.PromptForDouble(" Amount : ");
+
+                System.out.println("                      $" + amount + " Debit pending...");
+                addEntryToLedger(date, time, description, vendor, amount);
+            }
+        } catch (Exception e){
+            System.out.println("\n ERROR! Debit can not be processed... ");
+        }
+     while (Console.PromptForYesNo(" \nAdd another debit?")); //end loop when user input  no
     }
 
-    //Functional payment prompt
-    private static void addPayment() {
-        System.out.println("\nMake Payment:");
-        String date = Console.PromptForString("Enter date (yyyy-MM-dd): ");
-        String description = Console.PromptForString("Enter description: ");
-        String vendor = Console.PromptForString("Enter vendor: ");
-        double amount = Console.PromptForDouble("Enter amount: ");
+    //Functional deposit prompt
+    private static void addDeposit() {
 
-        addEntryToLedger(date, description, vendor, -amount); // Negative amount for payments
-        System.out.println("\nPayment added.");
+        //declare variables
+        String date, time, description, vendor;
+        double amount;
+
+        //determine if a deposit is recent or old
+        boolean choice = Console.PromptForYesNo("Is this deposit recent?");
+        try {
+            if(choice) {
+                date = current.format(fmtDate);
+                time = current.format(fmtTime);
+                description = Console.PromptForString(" Description: ");
+                vendor = Console.PromptForString(" Vendor: ");
+                amount = Console.PromptForDouble(" Amount: ");
+                addEntryToLedger(date, time, description, vendor, -amount); // Negative amount for payments
+                System.out.println("                     $" + amount + " deposit ending...");
+            }
+
+            if(!choice){
+                date = Console.PromptForString(" Date (YYYY-MM-dd): ");
+                time = Console.PromptForString(" Time (HH:mm:ss): ");
+                description = Console.PromptForString(" Description: ");
+                vendor = Console.PromptForString(" Vendor: ");
+                amount = Console.PromptForDouble(" Amount: ");
+                addEntryToLedger(date, time, description, vendor, -amount); // Negative amount for payments
+                System.out.println("                     $" + amount + " deposit ending...");
+            }
+        }
+        catch (Exception e){
+            System.out.println("\n ERROR! Deposit can not be process... ");
+        }
+        while(Console.PromptForYesNo("\nAdd new deposit?")); //end loop when user inputs No
+
     }
 
     //Add entry to ledger using Transactions class
-    private static void addEntryToLedger(String date, String description, String vendor, double amount) {
+    private static void addEntryToLedger(String date, String time, String description, String vendor, double amount) {
         try {
             List<Transactions.Transaction> currentTransactions = transactionsHandler.loadTransactions(FILE_NAME);
-            currentTransactions.add(new Transactions.Transaction(date, "", description, vendor, amount));
+            currentTransactions.add(new Transactions.Transaction(date, time, description, vendor, amount));
             transactionsHandler.saveTransactions(FILE_NAME, currentTransactions);
             System.out.println("Entry successfully added.");
         } catch (IOException e) {
@@ -99,7 +160,7 @@ public class Main {
             double balance = 0.0;
             int deposits = 0;
             int payments = 0;
-            
+
             // Calculate totals
             for (Transactions.Transaction transaction : transactions) {
                 double amount = transaction.getAmount();
@@ -107,103 +168,120 @@ public class Main {
                 if (amount > 0) deposits++;
                 else payments++;
             }
-            
+
             // Display summary
             System.out.printf("\nCurrent Balance: $%.2f\n", balance);
-            System.out.printf("Total Transactions: %d (Deposits: %d, Payments: %d)\n", 
-                deposits + payments, deposits, payments);
+            System.out.printf("Total Transactions: %d (Deposits: %d, Payments: %d)\n",
+                    deposits + payments, deposits, payments);
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
-        
-        System.out.println("\nLedger:");
-        System.out.println("A) All");
-        System.out.println("D) Deposits");
-        System.out.println("P) Payments");
-        System.out.println("H) Home");
-        String choice = Console.PromptForString("Choose an option: ").toUpperCase();
 
-        try {
-            List<Transactions.Transaction> ledgerEntries = transactionsHandler.loadTransactions(FILE_NAME);
-            Collections.reverse(ledgerEntries); // Show newest entries first
-            System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
+        //enhanced with do and while loops
+        while (true) {
+            System.out.println("\nLedger:");
+            System.out.println("A) All");
+            System.out.println("D) Deposits");
+            System.out.println("P) Payments");
+            System.out.println("H) Home");
+            String choice = Console.PromptForString("Choose an option: ").toUpperCase();
 
-            for (Transactions.Transaction entry : ledgerEntries) {
+            do {
+                try {
+                    List<Transactions.Transaction> ledgerEntries = transactionsHandler.loadTransactions(FILE_NAME);
+                    Collections.reverse(ledgerEntries); // Show newest entries first
+                    System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
+
+                    for (Transactions.Transaction entry : ledgerEntries) {
+                        switch (choice) {
+                            case "A":
+                                System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
+                                        entry.getDate(),
+                                        entry.getTime(),
+                                        entry.getDescription(),
+                                        entry.getVendor(),
+                                        entry.getAmount());
+                                break;
+                            case "D":
+                                if (entry.getAmount() > 0) {
+                                    System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
+                                            entry.getDate(),
+                                            entry.getTime(),
+                                            entry.getDescription(),
+                                            entry.getVendor(),
+                                            entry.getAmount());
+                                }
+                                break;
+                            case "P":
+                                if (entry.getAmount() < 0) {
+                                    System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
+                                            entry.getDate(),
+                                            entry.getTime(),
+                                            entry.getDescription(),
+                                            entry.getVendor(),
+                                            entry.getAmount());
+                                }
+                                break;
+                            case "H":
+                                return;
+                            default:
+                                System.out.println("Invalid option, please try again.");
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading file: " + e.getMessage());
+                }
+            }
+            while (!Console.PromptForYesNo("\nGo back?")); //end loop when user inputs Yes
+        }
+    }
+
+    //Enhanced to stay in Report screen instead of returning  Home
+    //Reports Menu Display
+    private static void displayReports() {
+
+
+        String reportOptions = """
+                1- Month to Date
+                2- Previous Month
+                3- Year to Date
+                4- Previous Year
+                5- Search by Vendor 
+                6- Custom Search 
+                """;
+
+        while (true) {
+            System.out.println("\nReports:");
+            System.out.println(reportOptions);
+            String choice = Console.PromptForString("Choose an option: ");
+
+            do {
                 switch (choice) {
-                    case "A":
-                        System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
-                            entry.getDate(), 
-                            entry.getTime(), 
-                            entry.getDescription(), 
-                            entry.getVendor(), 
-                            entry.getAmount());
+                    case "1":
+                        displayDateRangeReport(LocalDate.now().withDayOfMonth(1), LocalDate.now());
                         break;
-                    case "D":
-                        if (entry.getAmount() > 0) {
-                            System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
-                                entry.getDate(), 
-                                entry.getTime(), 
-                                entry.getDescription(), 
-                                entry.getVendor(), 
-                                entry.getAmount());
-                        }
+                    case "2":
+                        displayPreviousMonthReport();
                         break;
-                    case "P":
-                        if (entry.getAmount() < 0) {
-                            System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
-                                entry.getDate(), 
-                                entry.getTime(), 
-                                entry.getDescription(), 
-                                entry.getVendor(), 
-                                entry.getAmount());
-                        }
+                    case "3":
+                        displayDateRangeReport(LocalDate.now().withDayOfYear(1), LocalDate.now());
                         break;
-                    case "H":
+                    case "4":
+                        displayPreviousYearReport();
+                        break;
+                    case "5":
+                        searchByVendor();
+                        break;
+                    case "6":
+                        customSearch();
+                        break;
+                    case "0":
                         return;
                     default:
                         System.out.println("Invalid option, please try again.");
                 }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading file: " + e.getMessage());
-        }
-    }
+            } while (!Console.PromptForYesNo("\nGo back? ")); // return to report screen when user inputs Yes
 
-    //Reports Menu Display
-    private static void displayReports() {
-        System.out.println("\nReports:");
-        System.out.println("1) Month To Date");
-        System.out.println("2) Previous Month");
-        System.out.println("3) Year To Date");
-        System.out.println("4) Previous Year");
-        System.out.println("5) Search by Vendor");
-        System.out.println("6) Custom Search");
-        System.out.println("0) Back");
-        String choice = Console.PromptForString("Choose an option: ");
-
-        switch (choice) {
-            case "1":
-                displayDateRangeReport(LocalDate.now().withDayOfMonth(1), LocalDate.now());
-                break;
-            case "2":
-                displayPreviousMonthReport();
-                break;
-            case "3":
-                displayDateRangeReport(LocalDate.now().withDayOfYear(1), LocalDate.now());
-                break;
-            case "4":
-                displayPreviousYearReport();
-                break;
-            case "5":
-                searchByVendor();
-                break;
-            case "6":
-                customSearch();
-                break;
-            case "0":
-                return;
-            default:
-                System.out.println("Invalid option, please try again.");
         }
     }
 
@@ -214,7 +292,7 @@ public class Main {
             System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
 
             for (Transactions.Transaction entry : entries) {
-                LocalDate date = LocalDate.parse(entry.getDate().trim(), formatter);
+                LocalDate date = LocalDate.parse(entry.getDate().trim(), fmtDate);
                 if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
                     System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                         entry.getDate(), 
@@ -276,8 +354,8 @@ public class Main {
         String vendor = Console.PromptForString("Vendor or leave empty: ");
         String amountInput = Console.PromptForString("Amount or leave empty: ");
 
-        LocalDate startDate = startDateInput.isEmpty() ? null : LocalDate.parse(startDateInput, formatter);
-        LocalDate endDate = endDateInput.isEmpty() ? null : LocalDate.parse(endDateInput, formatter);
+        LocalDate startDate = startDateInput.isEmpty() ? null : LocalDate.parse(startDateInput, fmtDate);
+        LocalDate endDate = endDateInput.isEmpty() ? null : LocalDate.parse(endDateInput, fmtDate);
         Double amount = amountInput.isEmpty() ? null : Double.parseDouble(amountInput);
 
         try {
@@ -285,7 +363,7 @@ public class Main {
             System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
 
             for (Transactions.Transaction entry : entries) {
-                LocalDate date = LocalDate.parse(entry.getDate(), formatter);
+                LocalDate date = LocalDate.parse(entry.getDate(), fmtDate);
                 String entryDescription = entry.getDescription().toLowerCase();
                 String entryVendor = entry.getVendor().toLowerCase();
                 double entryAmount = entry.getAmount();
