@@ -1,13 +1,16 @@
 package com.pluralsight;
 
-import java.io.*;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Collections;
+import com.abdurraheem.utils.Console;
 
 public class Main {
-    private static final String FILE_NAME = "Transactions.csv";
+    private static final String FILE_NAME = "AccountingLedgerApp/Transactions.csv";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static Transactions transactionsHandler = new Transactions();
 
     //Connecting my homescreen to the main
     public static void main(String[] args) {
@@ -49,12 +52,10 @@ public class Main {
         }
     }
 
-
     //Functional deposit prompt
     private static void addDeposit() {
         System.out.println("\nAdd Deposit:");
         String date = Console.PromptForString("Enter date (yyyy-MM-dd): ");
-        String time = Console.PromptForString("Enter current time (hh:mm:ss)");
         String description = Console.PromptForString("Enter description: ");
         String vendor = Console.PromptForString("Enter vendor: ");
         double amount = Console.PromptForDouble("Enter amount: ");
@@ -67,20 +68,21 @@ public class Main {
     private static void addPayment() {
         System.out.println("\nMake Payment:");
         String date = Console.PromptForString("Enter date (yyyy-MM-dd): ");
-        String time = Console.PromptForString("Enter current time (hh:mm:ss)");
         String description = Console.PromptForString("Enter description: ");
         String vendor = Console.PromptForString("Enter vendor: ");
         double amount = Console.PromptForDouble("Enter amount: ");
 
-        addEntryToLedger(date, description, vendor, amount);
+        addEntryToLedger(date, description, vendor, -amount); // Negative amount for payments
         System.out.println("\nPayment added.");
     }
 
-    //Add entry to ledger
+    //Add entry to ledger using Transactions class
     private static void addEntryToLedger(String date, String description, String vendor, double amount) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
-            writer.write(date + "," + description + "," + vendor + "," + amount);
-            writer.newLine();
+        try {
+            List<Transactions.Transaction> currentTransactions = transactionsHandler.loadTransactions(FILE_NAME);
+            currentTransactions.add(new Transactions.Transaction(date, "", description, vendor, amount));
+            transactionsHandler.saveTransactions(FILE_NAME, currentTransactions);
+            System.out.println("Entry successfully added.");
         } catch (IOException e) {
             System.out.println("Error writing to file: " + e.getMessage());
         }
@@ -92,75 +94,54 @@ public class Main {
         System.out.println("A) All");
         System.out.println("D) Deposits");
         System.out.println("P) Payments");
-        System.out.println("(R) Reports");
         System.out.println("H) Home");
         String choice = Console.PromptForString("Choose an option: ").toUpperCase();
 
-        switch (choice) {
-            case "A":
-                displayLedger("ALL");
-                break;
-            case "D":
-                displayLedger("DEPOSITS");
-                break;
-            case "P":
-                displayLedger("PAYMENTS");
-                break;
-            case "R":
-                displayLedger("REPORTS");
-                break;
-            case "H":
-                return;
-            default:
-                System.out.println("Invalid option, please try again.");
-        }
-    }
+        try {
+            List<Transactions.Transaction> ledgerEntries = transactionsHandler.loadTransactions(FILE_NAME);
+            Collections.reverse(ledgerEntries); // Show newest entries first
+            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s%n", 
+                "Date", "Time", "Description", "Vendor", "Amount");
 
-
-    //Ledger Functions
-    private static void displayLedger(String filter) {
-        List<String[]> ledgerEntries = readLedgerEntries();
-
-        Collections.reverse(ledgerEntries); // Show newest entries first
-        System.out.printf("%-15s %-15s %-15s %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
-
-        for (String[] entry : ledgerEntries) {
-            String date = entry[0];
-            String time = entry[1];
-            String description = entry[2];
-            String vendor = entry[3];
-            double amount = Double.parseDouble(entry[4]);
-
-            switch (filter) {
-                case "DEPOSITS":
-                    if (amount > 0) {
-                        System.out.printf("%-15s | %-15s | %-15s | %-10.2f\n", date, time, description, vendor, amount);
-                    }
-                    break;
-                case "PAYMENTS":
-                    if (amount < 0) {
-                        System.out.printf("%-15s | %-15s | %-15s | %-10.2f\n", date, time, description, vendor, amount);
-                    }
-                    break;
-                case "ALL":
-                default:
-                    System.out.printf("%-15s | %-15s | %-15s | %-10.2f\n", date, time, description, vendor, amount);
-            }
-        }
-    }
-
-    //Reads the csv file and returns the list of ledger entries
-    private static List<String[]> readLedgerEntries() {
-        List<String[]> entries = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                entries.add(line.split(","));
+            for (Transactions.Transaction entry : ledgerEntries) {
+                switch (choice) {
+                    case "A":
+                        System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f%n", 
+                            entry.getDate(), 
+                            entry.getTime(), 
+                            entry.getDescription(), 
+                            entry.getVendor(), 
+                            entry.getAmount());
+                        break;
+                    case "D":
+                        if (entry.getAmount() > 0) {
+                            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f%n", 
+                                entry.getDate(), 
+                                entry.getTime(), 
+                                entry.getDescription(), 
+                                entry.getVendor(), 
+                                entry.getAmount());
+                        }
+                        break;
+                    case "P":
+                        if (entry.getAmount() < 0) {
+                            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f%n", 
+                                entry.getDate(), 
+                                entry.getTime(), 
+                                entry.getDescription(), 
+                                entry.getVendor(), 
+                                entry.getAmount());
+                        }
+                        break;
+                    case "H":
+                        return;
+                    default:
+                        System.out.println("Invalid option, please try again.");
+                }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
-        return entries;
     }
 
     //Reports Menu Display
@@ -203,14 +184,18 @@ public class Main {
 
     //Function filters the entries to include only those within the specified date range.
     private static void displayDateRangeReport(LocalDate startDate, LocalDate endDate) {
-        List<String[]> entries = readLedgerEntries();
-        System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
+        try {
+            List<Transactions.Transaction> entries = transactionsHandler.loadTransactions(FILE_NAME);
+            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
 
-        for (String[] entry : entries) {
-            LocalDate date = LocalDate.parse(entry[0], formatter);
-            if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
-                System.out.printf("%-15s | %-15s| %-15s | %-15s | %-10.2f\n", entry[0], entry[1], entry[2], entry[3], Double.parseDouble(entry[4]));
+            for (Transactions.Transaction entry : entries) {
+                LocalDate date = LocalDate.parse(entry.getDate(), formatter);
+                if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
+                    System.out.printf("%-15s | %-15s| %-15s | %-15s | %-10.2f\n", entry.getDate(), entry.getTime(), entry.getDescription(), entry.getVendor(), entry.getAmount());
+                }
             }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
         }
     }
 
@@ -234,13 +219,22 @@ public class Main {
     private static void searchByVendor() {
         String vendorName = Console.PromptForString("Enter vendor name: ").toLowerCase();
 
-        List<String[]> entries = readLedgerEntries();
-        System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
+        try {
+            List<Transactions.Transaction> entries = transactionsHandler.loadTransactions(FILE_NAME);
+            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
 
-        for (String[] entry : entries) {
-            if (entry[2].toLowerCase().contains(vendorName)) {
-                System.out.printf("%-15s | %-15s| %-15s | %-15s | %-10.2f\n", entry[0], entry[1], entry[2], entry[3], Double.parseDouble(entry[4]));
+            for (Transactions.Transaction entry : entries) {
+                if (entry.getVendor().toLowerCase().contains(vendorName)) {
+                    System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f\n", 
+                        entry.getDate(), 
+                        entry.getTime(), 
+                        entry.getDescription(), 
+                        entry.getVendor(), 
+                        entry.getAmount());
+                }
             }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
         }
     }
 
@@ -256,23 +250,32 @@ public class Main {
         LocalDate endDate = endDateInput.isEmpty() ? null : LocalDate.parse(endDateInput, formatter);
         Double amount = amountInput.isEmpty() ? null : Double.parseDouble(amountInput);
 
-        List<String[]> entries = readLedgerEntries();
-        System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
+        try {
+            List<Transactions.Transaction> entries = transactionsHandler.loadTransactions(FILE_NAME);
+            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
 
-        for (String[] entry : entries) {
-            LocalDate date = LocalDate.parse(entry[0], formatter);
-            String entryDescription = entry[1].toLowerCase();
-            String entryVendor = entry[2].toLowerCase();
-            double entryAmount = Double.parseDouble(entry[3]);
+            for (Transactions.Transaction entry : entries) {
+                LocalDate date = LocalDate.parse(entry.getDate(), formatter);
+                String entryDescription = entry.getDescription().toLowerCase();
+                String entryVendor = entry.getVendor().toLowerCase();
+                double entryAmount = entry.getAmount();
 
-            if ((startDate == null || !date.isBefore(startDate)) &&
+                if ((startDate == null || !date.isBefore(startDate)) &&
                     (endDate == null || !date.isAfter(endDate)) &&
                     (description.isEmpty() || entryDescription.contains(description.toLowerCase())) &&
                     (vendor.isEmpty() || entryVendor.contains(vendor.toLowerCase())) &&
                     (amount == null || entryAmount == amount)) {
 
-                System.out.printf("%-15s | %-15s | %-15s | %-10.2f\n", entry[0], entry[1], entry[2], entryAmount);
+                    System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f\n", 
+                        entry.getDate(), 
+                        entry.getTime(), 
+                        entry.getDescription(), 
+                        entry.getVendor(), 
+                        entry.getAmount());
+                }
             }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
         }
     }
 }
