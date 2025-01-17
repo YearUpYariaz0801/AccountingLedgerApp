@@ -73,33 +73,34 @@ public class Main {
         String date, time, description, vendor;
         double amount;
         boolean choice = Console.PromptForYesNo("Is this payment recent?");
+        
+        do {
+            try {
+                //if the user is adding a recent debit set date and time to current
+                if (choice) {
+                    date = current.format(fmtDate);
+                    time = current.format(fmtTime);
+                    description = Console.PromptForString(" Description: ");
+                    vendor = Console.PromptForString(" Vendor: ");
+                    amount = Console.PromptForDouble(" Amount: ");
+                    System.out.println("                      $" + amount + " Debit pending...");
+                    addEntryToLedger(date, time, description, vendor, amount);
+                }
 
+                //if deposit is adding a previous debit prompt for date and time
+                if (!choice) {
+                    date = Console.PromptForString(" Date (MM-dd-YYYY): ");
+                    time = Console.PromptForString(" Time (HH:mm:ss): ");
+                    description = Console.PromptForString(" Description: ");
+                    vendor = Console.PromptForString(" Vendor: ");
+                    amount = Console.PromptForDouble(" Amount : ");
 
-        try {
-            //if the user is adding a recent debit set date and time to current
-            if (choice) {
-                date = current.format(fmtDate);
-                time = current.format(fmtTime);
-                description = Console.PromptForString(" Description: ");
-                vendor = Console.PromptForString(" Vendor: ");
-                amount = Console.PromptForDouble(" Amount: ");
-                System.out.println("                      $" + amount + " Debit pending...");
-                addEntryToLedger(date, time, description, vendor, amount);
+                    System.out.println("                      $" + amount + " Debit pending...");
+                    addEntryToLedger(date, time, description, vendor, amount);
+                }
+            } catch (Exception e) {
+                System.out.println("\n ERROR! Debit can not be processed... ");
             }
-
-            //if deposit is adding a previous debit prompt for date and time
-            if (!choice) {
-                date = Console.PromptForString(" Date (MM-dd-YYYY): ");
-                time = Console.PromptForString(" Time (HH:mm:ss): ");
-                description = Console.PromptForString(" Description: ");
-                vendor = Console.PromptForString(" Vendor: ");
-                amount = Console.PromptForDouble(" Amount : ");
-
-                System.out.println("                      $" + amount + " Debit pending...");
-                addEntryToLedger(date, time, description, vendor, amount);
-            }
-        } catch (Exception e){
-            System.out.println("\n ERROR! Debit can not be processed... ");
         }
      while (Console.PromptForYesNo(" \nAdd another debit?")); //end loop when user input  no
     }
@@ -111,31 +112,32 @@ public class Main {
         String date, time, description, vendor;
         double amount;
 
-        //determine if a deposit is recent or old
-        boolean choice = Console.PromptForYesNo("Is this deposit recent?");
-        try {
-            if(choice) {
-                date = current.format(fmtDate);
-                time = current.format(fmtTime);
-                description = Console.PromptForString(" Description: ");
-                vendor = Console.PromptForString(" Vendor: ");
-                amount = Console.PromptForDouble(" Amount: ");
-                addEntryToLedger(date, time, description, vendor, -amount); // Negative amount for payments
-                System.out.println("                     $" + amount + " deposit ending...");
-            }
+        do {
+            //determine if a deposit is recent or old
+            boolean choice = Console.PromptForYesNo("Is this deposit recent?");
+            try {
+                if (choice) {
+                    date = current.format(fmtDate);
+                    time = current.format(fmtTime);
+                    description = Console.PromptForString(" Description: ");
+                    vendor = Console.PromptForString(" Vendor: ");
+                    amount = Console.PromptForDouble(" Amount: ");
+                    addEntryToLedger(date, time, description, vendor, -amount); // Negative amount for payments
+                    System.out.println("                     $" + amount + " deposit ending...");
+                }
 
-            if(!choice){
-                date = Console.PromptForString(" Date (YYYY-MM-dd): ");
-                time = Console.PromptForString(" Time (HH:mm:ss): ");
-                description = Console.PromptForString(" Description: ");
-                vendor = Console.PromptForString(" Vendor: ");
-                amount = Console.PromptForDouble(" Amount: ");
-                addEntryToLedger(date, time, description, vendor, -amount); // Negative amount for payments
-                System.out.println("                     $" + amount + " deposit ending...");
+                if (!choice) {
+                    date = Console.PromptForString(" Date (YYYY-MM-dd): ");
+                    time = Console.PromptForString(" Time (HH:mm:ss): ");
+                    description = Console.PromptForString(" Description: ");
+                    vendor = Console.PromptForString(" Vendor: ");
+                    amount = Console.PromptForDouble(" Amount: ");
+                    addEntryToLedger(date, time, description, vendor, -amount); // Negative amount for payments
+                    System.out.println("                     $" + amount + " deposit ending...");
+                }
+            } catch (Exception e) {
+                System.out.println("\n ERROR! Deposit can not be process... ");
             }
-        }
-        catch (Exception e){
-            System.out.println("\n ERROR! Deposit can not be process... ");
         }
         while(Console.PromptForYesNo("\nAdd new deposit?")); //end loop when user inputs No
 
