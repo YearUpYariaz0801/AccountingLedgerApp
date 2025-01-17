@@ -21,12 +21,13 @@ public class Main {
 
     //Displaying the Home Screen options
     private static void displayHomeScreen() {
-        System.out.println("Welcome to Your Accounting Ledger!");
+        System.out.println("\nWelcome to Your Accounting Ledger!");
         System.out.println("-----------------------------------");
         System.out.println("\nHome Screen:");
         System.out.println("D) Add Deposit");
         System.out.println("P) Make Payment");
         System.out.println("L) Ledger");
+        System.out.println("V) View Last Transaction");
         System.out.println("R) Reports");
         System.out.println("X) Exit");
         String choice = Console.PromptForString("Choose an option: ").toUpperCase();
@@ -41,6 +42,9 @@ public class Main {
                 break;
             case "L":
                 displayLedger();
+                break;
+            case "V":
+                displayLastTransaction();
                 break;
             case "R":
                 displayReports();
@@ -90,6 +94,28 @@ public class Main {
 
     //Ledger Screen
     private static void displayLedger() {
+        try {
+            List<Transactions.Transaction> transactions = transactionsHandler.loadTransactions(FILE_NAME);
+            double balance = 0.0;
+            int deposits = 0;
+            int payments = 0;
+            
+            // Calculate totals
+            for (Transactions.Transaction transaction : transactions) {
+                double amount = transaction.getAmount();
+                balance += amount;
+                if (amount > 0) deposits++;
+                else payments++;
+            }
+            
+            // Display summary
+            System.out.printf("\nCurrent Balance: $%.2f\n", balance);
+            System.out.printf("Total Transactions: %d (Deposits: %d, Payments: %d)\n", 
+                deposits + payments, deposits, payments);
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+        
         System.out.println("\nLedger:");
         System.out.println("A) All");
         System.out.println("D) Deposits");
@@ -277,6 +303,22 @@ public class Main {
                         entry.getVendor(), 
                         entry.getAmount());
                 }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+    }
+
+    private static void displayLastTransaction() {
+        try {
+            List<Transactions.Transaction> transactions = transactionsHandler.loadTransactions(FILE_NAME);
+            if (!transactions.isEmpty()) {
+                Transactions.Transaction last = transactions.get(transactions.size() - 1);
+                System.out.println("\nLast Transaction:");
+                System.out.printf("Date: %s\nDescription: %s\nVendor: %s\nAmount: $%.2f\n",
+                    last.getDate(), last.getDescription(), last.getVendor(), last.getAmount());
+            } else {
+                System.out.println("No transactions found.");
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
