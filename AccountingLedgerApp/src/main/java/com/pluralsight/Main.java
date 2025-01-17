@@ -25,45 +25,54 @@ public class Main {
 
     //Displaying the Home Screen options
     private static void displayHomeScreen() {
+        try {
+            List<Transactions.Transaction> transactions = transactionsHandler.loadTransactions(FILE_NAME);
+            System.out.println("\nWelcome to Your Accounting Ledger!");
+            System.out.println("-----------------------------------");
+            System.out.printf("Total Transactions: %d\n\n", transactions.size());
 
-        //Enhancement
-        String homeOptions = """
-                Please select from the following choices:
-                D - Add Deposit 
-                P - Make a Payment
-                L - View Ledger
-                V - View last transaction
-                R - View Reports
-                X - Exit
-                """;
-        System.out.println("\nWelcome to Your Accounting Ledger!");
-        System.out.println("-----------------------------------");
-
-        System.out.println(homeOptions);
-        String choice = Console.PromptForString("Choose an option: ").toUpperCase();
+            //Enhancement
+            String homeOptions = """
+                    Please select from the following choices:
+                    D - Add Deposit 
+                    P - Make a Payment
+                    L - View Ledger
+                    V - View last transaction
+                    T - Today's Transactions
+                    R - View Reports
+                    X - Exit
+                    """;
+            System.out.println(homeOptions);
+            String choice = Console.PromptForString("Choose an option: ").toUpperCase();
 
 
-        //Making the user options for the Home Screen
-        switch (choice) {
-            case "D":
-                addDeposit();
-                break;
-            case "P":
-                addPayment();
-                break;
-            case "L":
-                displayLedger();
-                break;
-            case "V":
-                displayLastTransaction();
-                break;
-            case "R":
-                displayReports();
-                break;
-            case "X":
-                System.exit(0);
-            default:
-                System.out.println("Invalid option, please try again.");
+            //Making the user options for the Home Screen
+            switch (choice) {
+                case "D":
+                    addDeposit();
+                    break;
+                case "P":
+                    addPayment();
+                    break;
+                case "L":
+                    displayLedger();
+                    break;
+                case "V":
+                    displayLastTransaction();
+                    break;
+                case "T":
+                    displayTodayTransactions();
+                    break;
+                case "R":
+                    displayReports();
+                    break;
+                case "X":
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid option, please try again.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
         }
     }
 
@@ -400,6 +409,26 @@ public class Main {
             } else {
                 System.out.println("No transactions found.");
             }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+    }
+
+    private static void displayTodayTransactions() {
+        try {
+            List<Transactions.Transaction> transactions = transactionsHandler.loadTransactions(FILE_NAME);
+            String today = current.format(fmtDate);
+            System.out.println("\nToday's Transactions:");
+            
+            boolean found = false;
+            for (Transactions.Transaction t : transactions) {
+                if (t.getDate().equals(today)) {
+                    System.out.printf("%s | %s | %s | $%.2f\n",
+                        t.getTime(), t.getDescription(), t.getVendor(), t.getAmount());
+                    found = true;
+                }
+            }
+            if (!found) System.out.println("No transactions today.");
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
