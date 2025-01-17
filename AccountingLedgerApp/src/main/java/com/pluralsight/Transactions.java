@@ -28,11 +28,11 @@ public class Transactions {
                 String[] lineSplit = line.split("\\|"); // split line into components
 
                 loadedTransactions.add(new Transaction(
-                        lineSplit[0],
-                        lineSplit[1],
-                        lineSplit[2],
-                        lineSplit[3],
-                        Double.parseDouble(lineSplit[4])
+                        lineSplit[0].trim(),
+                        lineSplit[1].trim(),
+                        lineSplit[2].trim(),
+                        lineSplit[3].trim(),
+                        Double.parseDouble(lineSplit[4].trim())
                 ));
 
             }

@@ -189,9 +189,14 @@ public class Main {
             System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
 
             for (Transactions.Transaction entry : entries) {
-                LocalDate date = LocalDate.parse(entry.getDate(), formatter);
+                LocalDate date = LocalDate.parse(entry.getDate().trim(), formatter);
                 if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
-                    System.out.printf("%-15s | %-15s| %-15s | %-15s | %-10.2f\n", entry.getDate(), entry.getTime(), entry.getDescription(), entry.getVendor(), entry.getAmount());
+                    System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f\n", 
+                        entry.getDate(), 
+                        entry.getTime(), 
+                        entry.getDescription(), 
+                        entry.getVendor(), 
+                        entry.getAmount());
                 }
             }
         } catch (IOException e) {
