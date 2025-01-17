@@ -118,4 +118,48 @@ public class Console {
     System.out.printf("\nCurrent Balance: $%.2f\n", balance);
     System.out.printf("Total Transactions: %d (Deposits: %d, Payments: %d)\n", 
         deposits + payments, deposits, payments);
+```
+
+- Added "Today's Transactions" feature:
+```java:AccountingLedgerApp/src/main/java/com/pluralsight/Main.java
+private static void displayTodayTransactions() {
+    try {
+        List<Transactions.Transaction> transactions = transactionsHandler.loadTransactions(FILE_NAME);
+        String today = current.format(fmtDate);
+        System.out.println("\nToday's Transactions:");
+        
+        boolean found = false;
+        for (Transactions.Transaction t : transactions) {
+            if (t.getDate().equals(today)) {
+                System.out.printf("%s | %s | %s | $%.2f\n",
+                    t.getTime(), t.getDescription(), t.getVendor(), t.getAmount());
+                found = true;
+            }
+        }
+        if (!found) System.out.println("No transactions today.");
+    } catch (IOException e) {
+        System.out.println("Error reading file: " + e.getMessage());
+    }
+}
+```
+
+- Enhanced home screen with transaction count display:
+```java:AccountingLedgerApp/src/main/java/com/pluralsight/Main.java
+System.out.println("\nWelcome to Your Accounting Ledger!");
+System.out.println("-----------------------------------");
+System.out.printf("Total Transactions: %d\n\n", transactions.size());
+```
+
+- Updated home screen menu with new options:
+```java
+String homeOptions = """
+        Please select from the following choices:
+        D - Add Deposit 
+        P - Make a Payment
+        L - View Ledger
+        V - View last transaction
+        T - Today's Transactions
+        R - View Reports
+        X - Exit
+        """;
 ``` 
