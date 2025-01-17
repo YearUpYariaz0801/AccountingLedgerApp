@@ -100,13 +100,12 @@ public class Main {
         try {
             List<Transactions.Transaction> ledgerEntries = transactionsHandler.loadTransactions(FILE_NAME);
             Collections.reverse(ledgerEntries); // Show newest entries first
-            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s%n", 
-                "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
 
             for (Transactions.Transaction entry : ledgerEntries) {
                 switch (choice) {
                     case "A":
-                        System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f%n", 
+                        System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                             entry.getDate(), 
                             entry.getTime(), 
                             entry.getDescription(), 
@@ -115,7 +114,7 @@ public class Main {
                         break;
                     case "D":
                         if (entry.getAmount() > 0) {
-                            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f%n", 
+                            System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                                 entry.getDate(), 
                                 entry.getTime(), 
                                 entry.getDescription(), 
@@ -125,7 +124,7 @@ public class Main {
                         break;
                     case "P":
                         if (entry.getAmount() < 0) {
-                            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f%n", 
+                            System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                                 entry.getDate(), 
                                 entry.getTime(), 
                                 entry.getDescription(), 
@@ -186,12 +185,12 @@ public class Main {
     private static void displayDateRangeReport(LocalDate startDate, LocalDate endDate) {
         try {
             List<Transactions.Transaction> entries = transactionsHandler.loadTransactions(FILE_NAME);
-            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
 
             for (Transactions.Transaction entry : entries) {
                 LocalDate date = LocalDate.parse(entry.getDate().trim(), formatter);
                 if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
-                    System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f\n", 
+                    System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                         entry.getDate(), 
                         entry.getTime(), 
                         entry.getDescription(), 
@@ -226,11 +225,11 @@ public class Main {
 
         try {
             List<Transactions.Transaction> entries = transactionsHandler.loadTransactions(FILE_NAME);
-            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
 
             for (Transactions.Transaction entry : entries) {
                 if (entry.getVendor().toLowerCase().contains(vendorName)) {
-                    System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f\n", 
+                    System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                         entry.getDate(), 
                         entry.getTime(), 
                         entry.getDescription(), 
@@ -257,7 +256,7 @@ public class Main {
 
         try {
             List<Transactions.Transaction> entries = transactionsHandler.loadTransactions(FILE_NAME);
-            System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10s\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.printf("%15s | %15s | %30s | %20s | %15s \n", "date", "time", "description", "vendor", "amount");
 
             for (Transactions.Transaction entry : entries) {
                 LocalDate date = LocalDate.parse(entry.getDate(), formatter);
@@ -271,7 +270,7 @@ public class Main {
                     (vendor.isEmpty() || entryVendor.contains(vendor.toLowerCase())) &&
                     (amount == null || entryAmount == amount)) {
 
-                    System.out.printf("%-15s | %-15s | %-15s | %-15s | %-10.2f\n", 
+                    System.out.printf("%15s | %15s | %30s | %20s | %15.2f \n",
                         entry.getDate(), 
                         entry.getTime(), 
                         entry.getDescription(), 
